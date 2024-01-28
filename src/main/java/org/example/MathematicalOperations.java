@@ -31,8 +31,7 @@ public class MathematicalOperations {
         }
 
         // The additive inverse of a is 0x10000 - a
-        int result = 0x10000 - a;
-        return result;
+        return 0x10000 - a;
     }
 
     // 16-byte Multiplicative Inverse

@@ -1,10 +1,10 @@
 package org.example;
 
 public class IDEA_Algorithm {
-    static MathematicalOperations math = new MathematicalOperations();
+
 
     // number of rounds is 8 for 128-bit key
-    private static int roundsNum = 8;
+    private static final int roundsNum = 8;
 
     // (roundsNum * 6 + 4) = 52 16-byte sub-keys generated from the user 128-bit key
     private int[] sub_key;
@@ -12,10 +12,12 @@ public class IDEA_Algorithm {
     //constructor
     public IDEA_Algorithm(byte[] key, String option) {
         int[] tempSubKey = key_expansion(key);
-        if (option == "encrypt")
+        if (option.equals("encrypt"))
             sub_key = tempSubKey;
-        else if(option == "decrypt")
+        else if(option.equals("decrypt")) {
+            assert tempSubKey != null;
             sub_key  = inverted_sub_key(tempSubKey);
+        }
     }
 
     // invert subKeys when converting from decryption or to encryption
@@ -27,10 +29,10 @@ public class IDEA_Algorithm {
         //roundsNum * 6 = 8 * 6 = 48
         int i = 48;
 
-        new_key[i + 0] = math.multiplicativeInverse(key[counter++]);
-        new_key[i + 1] = math.additiveInverse(key[counter++]);
-        new_key[i + 2] = math.additiveInverse(key[counter++]);
-        new_key[i + 3] = math.multiplicativeInverse(key[counter++]);
+        new_key[i] = MathematicalOperations.multiplicativeInverse(key[counter++]);
+        new_key[i + 1] = MathematicalOperations.additiveInverse(key[counter++]);
+        new_key[i + 2] = MathematicalOperations.additiveInverse(key[counter++]);
+        new_key[i + 3] = MathematicalOperations.multiplicativeInverse(key[counter++]);
 
         int r = roundsNum - 1;
         while(r>=0){
@@ -39,10 +41,10 @@ public class IDEA_Algorithm {
             int n = r > 0 ? 1 : 2;
             new_key[i + 4] = key[counter++];
             new_key[i + 5] = key[counter++];
-            new_key[i + 0] = math.multiplicativeInverse(key[counter++]);
-            new_key[i + m] = math.additiveInverse(key[counter++]);
-            new_key[i + n] = math.additiveInverse(key[counter++]);
-            new_key[i + 3] = math.multiplicativeInverse(key[counter++]);
+            new_key[i] = MathematicalOperations.multiplicativeInverse(key[counter++]);
+            new_key[i + m] = MathematicalOperations.additiveInverse(key[counter++]);
+            new_key[i + n] = MathematicalOperations.additiveInverse(key[counter++]);
+            new_key[i + 3] = MathematicalOperations.multiplicativeInverse(key[counter++]);
             r--;
         }
         return new_key;
@@ -67,17 +69,17 @@ public class IDEA_Algorithm {
             //second operation:
             //multiplying first and last element with corresponding sub key
             //adding second and third element with corresponding sub key
-            y[0] = math.multiply(x[0], sub_key[count++]);
-            y[1] = math.add(x[1], sub_key[count++]);
-            y[2] = math.add(x[2], sub_key[count++]);
-            y[3] = math.multiply(x[3], sub_key[count++]);
+            y[0] = MathematicalOperations.multiply(x[0], sub_key[count++]);
+            y[1] = MathematicalOperations.add(x[1], sub_key[count++]);
+            y[2] = MathematicalOperations.add(x[2], sub_key[count++]);
+            y[3] = MathematicalOperations.multiply(x[3], sub_key[count++]);
 
             //third operation:
             //internally XOR-ing and multiplying or adding
-            z[0] = math.multiply(y[0] ^ y[2], sub_key[count++]);
-            z[1] = math.add(y[1] ^ y[3], z[0]);
-            z[2] = math.multiply(z[1], sub_key[count++]);
-            z[3] = math.add(z[0], z[2]);
+            z[0] = MathematicalOperations.multiply(y[0] ^ y[2], sub_key[count++]);
+            z[1] = MathematicalOperations.add(y[1] ^ y[3], z[0]);
+            z[2] = MathematicalOperations.multiply(z[1], sub_key[count++]);
+            z[3] = MathematicalOperations.add(z[0], z[2]);
 
             //Fourth operation:
             //XOR-ing
@@ -91,10 +93,10 @@ public class IDEA_Algorithm {
 
         //last operation:
         //multiplying and adding operations
-        s[0] = math.multiply(x[0], sub_key[count++]);
-        s[1] = math.add(x[2], sub_key[count++]);
-        s[2] = math.add(x[1], sub_key[count++]);
-        s[3] = math.multiply(x[3], sub_key[count++]);
+        s[0] = MathematicalOperations.multiply(x[0], sub_key[count++]);
+        s[1] = MathematicalOperations.add(x[2], sub_key[count++]);
+        s[2] = MathematicalOperations.add(x[1], sub_key[count++]);
+        s[3] = MathematicalOperations.multiply(x[3], sub_key[count++]);
 
         //final block ciphertext
         buffer[0] = (byte)(s[0] >> 8);
