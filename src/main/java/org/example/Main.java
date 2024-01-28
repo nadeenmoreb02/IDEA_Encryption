@@ -1,7 +1,5 @@
 package org.example;
 
-import java.util.*;
-
 public class Main {
     public static void main(String[] args) {
         // key and plaintext in hexadecimal format
@@ -32,8 +30,40 @@ public class Main {
         System.out.println("Plaintext:   " + hexPlaintext);
         System.out.println("Ciphertext:  " + hexCiphertext);
         System.out.println("Decrypted:   " + hexDecryptedText);
+
+        System.out.println("--------------------IDEA_Algorithm256-----------------------");
+        tryIDEA256();
     }
 
+
+    private static void tryIDEA256(){
+        String hexKey = "000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F";
+        String hexPlaintext = "05320a6414c819fa";
+
+        byte[] key = hexStringToByteArray(hexKey);
+        byte[] plaintext = hexStringToByteArray(hexPlaintext);
+
+        IDEA_Algorithm256 ideaEncrypt = new IDEA_Algorithm256(key, "encrypt");
+        byte[] ciphertext = plaintext.clone();
+        ideaEncrypt.convert(ciphertext);
+
+        // Convert ciphertext to hex string
+        String hexCiphertext = byteArrayToHexString(ciphertext);
+
+        // Decrypt
+        IDEA_Algorithm256 ideaDecrypt = new IDEA_Algorithm256(key, "decrypt");
+        byte[] decryptedText = ciphertext.clone();
+        ideaDecrypt.convert(decryptedText);
+
+        // Convert decrypted text to hex string
+        String hexDecryptedText = byteArrayToHexString(decryptedText);
+
+        // Print Key, Plaintext, Ciphertext, and Decrypted text
+        System.out.println("Key:         " + hexKey);
+        System.out.println("Plaintext:   " + hexPlaintext);
+        System.out.println("Ciphertext:  " + hexCiphertext);
+        System.out.println("Decrypted:   " + hexDecryptedText);
+    }
     private static byte[] hexStringToByteArray(String s) {
         int len = s.length();
         byte[] data = new byte[len / 2];
