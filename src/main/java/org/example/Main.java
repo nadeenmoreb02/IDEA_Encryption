@@ -1,47 +1,58 @@
 package org.example;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class Main {
-    public static void main(String[] args) {
-        // key and plaintext in hexadecimal format
-        String hexKey = "006400c8012c019001f4025802bc0320";
-        String hexPlaintext = "05320a6414c819fa";
+        public static void main(String[] args) {
+            // key in hex string
+            String hexKey = "006400c8012c019001f4025802bc0320";
+            // plaintext as a normal string
+            String plaintextString = "hello this is a test";
 
-        byte[] key = hexStringToByteArray(hexKey);
-        byte[] plaintext = hexStringToByteArray(hexPlaintext);
+            byte[] key = hexStringToByteArray(hexKey);
+            byte[] plaintext = plaintextString.getBytes(StandardCharsets.UTF_8);
 
-        // Encrypt
-        IDEA_Algorithm ideaEncrypt = new IDEA_Algorithm(key, "encrypt");
-        byte[] ciphertext = plaintext.clone();
-        ideaEncrypt.convert(ciphertext);
+            // Process plaintext in 8-byte blocks
+            byte[] ciphertext = new byte[plaintext.length];
+            byte[] decryptedText = new byte[plaintext.length];
 
-        // Convert ciphertext to hex string
-        String hexCiphertext = byteArrayToHexString(ciphertext);
+            int totalLength = plaintext.length;
+            //number of 8-byte blocks
+            int blockCount = (totalLength + 7) / 8;
 
-        // Decrypt
-        IDEA_Algorithm ideaDecrypt = new IDEA_Algorithm(key, "decrypt");
-        byte[] decryptedText = ciphertext.clone();
-        ideaDecrypt.convert(decryptedText);
 
-        // Convert decrypted text to hex string
-        String hexDecryptedText = byteArrayToHexString(decryptedText);
+            for (int i = 0; i < totalLength; i += 8) {
+                int blockSize = Math.min(8, totalLength - i);
+                byte[] block = Arrays.copyOfRange(plaintext, i, i + blockSize);
+                byte[] paddedBlock = padPlaintext(new String(block, StandardCharsets.UTF_8));
 
-        // Print Key, Plaintext, Ciphertext, and Decrypted text
-        System.out.println("Key:         " + hexKey);
-        System.out.println("Plaintext:   " + hexPlaintext);
-        System.out.println("Ciphertext:  " + hexCiphertext);
-        System.out.println("Decrypted:   " + hexDecryptedText);
-    }
+                // Encrypt
+                IDEA_Algorithm ideaEncrypt = new IDEA_Algorithm(key, "encrypt");
+                ideaEncrypt.convert(paddedBlock);
 
-    private static byte[] hexStringToByteArray(String s) {
-        int len = s.length();
-        byte[] data = new byte[len / 2];
-        for (int i = 0; i < len; i += 2) {
-            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4) + Character.digit(s.charAt(i + 1), 16));
+                // Decrypt
+                IDEA_Algorithm ideaDecrypt = new IDEA_Algorithm(key, "decrypt");
+                ideaDecrypt.convert(paddedBlock);
+
+                // Copy to ciphertext and decryptedText arrays
+                System.arraycopy(paddedBlock, 0, ciphertext, i, blockSize);
+                System.arraycopy(paddedBlock, 0, decryptedText, i, blockSize);
+            }
+
+            // Convert ciphertext to hex string
+            String hexCiphertext = byteArrayToHexString(ciphertext);
+
+            // Convert decrypted text to normal string
+            String decryptedString = new String(decryptedText, StandardCharsets.UTF_8).trim();
+
+            // Print Key, Plaintext, Ciphertext, and Decrypted text
+            System.out.println("Key:         " + hexKey);
+            System.out.println("Plaintext:   " + plaintextString);
+            System.out.println("Ciphertext:  " + hexCiphertext);
+            System.out.println("Decrypted:   " + decryptedString);
         }
-        return data;
-    }
+
 
     private static String byteArrayToHexString(byte[] byteArray) {
         StringBuilder hexString = new StringBuilder();
@@ -54,4 +65,27 @@ public class Main {
         }
         return hexString.toString();
     }
-}
+    private static byte[] padPlaintext(String plaintext) {
+        byte[] padded = new byte[8];
+        byte[] plaintextBytes = plaintext.getBytes();
+
+        // Copy the original bytes
+        System.arraycopy(plaintextBytes, 0, padded, 0, Math.min(plaintextBytes.length, 8));
+
+        // Pad with 'x' fill char if needed
+        for (int i = plaintextBytes.length; i < 8; i++) {
+            padded[i] = 'x';
+        }
+
+        return padded;
+    }
+        private static byte[] hexStringToByteArray(String s) {
+            int len = s.length();
+            byte[] data = new byte[len / 2];
+            for (int i = 0; i < len; i += 2) {
+                data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4) + Character.digit(s.charAt(i + 1), 16));
+            }
+            return data;
+        }
+
+     }
