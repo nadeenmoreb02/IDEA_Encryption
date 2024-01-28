@@ -6,10 +6,15 @@ import java.util.*;
 
 public class Main {
     public static void main(String[] args) {
+        IDEA_128("hello this is a test");
+        IDEA_256("hello this is a test");
+    }
+
+    private static void IDEA_128(String plaintextString) {
+
+        System.out.println("------------------IDEA_128------------------");
         // key in hex string
         String hexKey = "006400c8012c019001f4025802bc0320";
-        // plaintext as a normal string
-        String plaintextString = "hello this is a test";
 
         byte[] key = hexStringToByteArray(hexKey);
         byte[] plaintext = plaintextString.getBytes(StandardCharsets.UTF_8);
@@ -19,9 +24,9 @@ public class Main {
         byte[] decryptedText = new byte[plaintext.length];
 
         int totalLength = plaintext.length;
+
         //number of 8-byte blocks
         int blockCount = (totalLength + 7) / 8;
-
 
         for (int i = 0; i < totalLength; i += 8) {
             int blockSize = Math.min(8, totalLength - i);
@@ -52,8 +57,57 @@ public class Main {
         System.out.println("Plaintext:   " + plaintextString);
         System.out.println("Ciphertext:  " + hexCiphertext);
         System.out.println("Decrypted:   " + decryptedString);
+        System.out.println("------------------Finished------------------");
     }
 
+    private static void IDEA_256(String plaintextString) {
+        System.out.println("------------------IDEA_265------------------");
+        // key in hex string
+        String hexKey = "000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F";
+
+        byte[] key = hexStringToByteArray(hexKey);
+        byte[] plaintext = plaintextString.getBytes(StandardCharsets.UTF_8);
+
+        // Process plaintext in 8-byte blocks
+        byte[] ciphertext = new byte[plaintext.length];
+        byte[] decryptedText = new byte[plaintext.length];
+
+        int totalLength = plaintext.length;
+
+        //number of 8-byte blocks
+        int blockCount = (totalLength + 7) / 8;
+
+        for (int i = 0; i < totalLength; i += 8) {
+            int blockSize = Math.min(8, totalLength - i);
+            byte[] block = Arrays.copyOfRange(plaintext, i, i + blockSize);
+            byte[] paddedBlock = padPlaintext(new String(block, StandardCharsets.UTF_8));
+
+            // Encrypt
+            IDEA_Algorithm256 ideaEncrypt = new IDEA_Algorithm256(key, "encrypt");
+            ideaEncrypt.convert(paddedBlock);
+
+            // Decrypt
+            IDEA_Algorithm256 ideaDecrypt = new IDEA_Algorithm256(key, "decrypt");
+            ideaDecrypt.convert(paddedBlock);
+
+            // Copy to ciphertext and decryptedText arrays
+            System.arraycopy(paddedBlock, 0, ciphertext, i, blockSize);
+            System.arraycopy(paddedBlock, 0, decryptedText, i, blockSize);
+        }
+
+        // Convert ciphertext to hex string
+        String hexCiphertext = byteArrayToHexString(ciphertext);
+
+        // Convert decrypted text to normal string
+        String decryptedString = new String(decryptedText, StandardCharsets.UTF_8).trim();
+
+        // Print Key, Plaintext, Ciphertext, and Decrypted text
+        System.out.println("Key:         " + hexKey);
+        System.out.println("Plaintext:   " + plaintextString);
+        System.out.println("Ciphertext:  " + hexCiphertext);
+        System.out.println("Decrypted:   " + decryptedString);
+        System.out.println("------------------Finished------------------");
+    }
 
     private static String byteArrayToHexString(byte[] byteArray) {
         StringBuilder hexString = new StringBuilder();
@@ -66,6 +120,7 @@ public class Main {
         }
         return hexString.toString();
     }
+
     private static byte[] padPlaintext(String plaintext) {
         byte[] padded = new byte[8];
         byte[] plaintextBytes = plaintext.getBytes();
@@ -80,6 +135,7 @@ public class Main {
 
         return padded;
     }
+
     private static byte[] hexStringToByteArray(String s) {
         int len = s.length();
         byte[] data = new byte[len / 2];
