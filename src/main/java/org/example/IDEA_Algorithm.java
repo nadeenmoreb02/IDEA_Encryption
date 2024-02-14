@@ -1,5 +1,4 @@
 package org.example;
-
 import java.util.*;
 public class IDEA_Algorithm {
 
